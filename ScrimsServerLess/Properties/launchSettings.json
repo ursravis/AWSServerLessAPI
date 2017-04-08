@@ -1,0 +1,1 @@
+{  "profiles": {    "ScrimsServerLess": {      "commandName": "Project",      "environmentVariables": {        "ASPNETCORE_ENVIRONMENT": "Development"      }    }  }}
