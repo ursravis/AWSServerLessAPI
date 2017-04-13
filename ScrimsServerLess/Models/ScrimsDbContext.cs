@@ -19,15 +19,19 @@ namespace ScrimsServerLess.Models
         public virtual DbSet<ProjectUser> ProjectUser { get; set; }
         public virtual DbSet<ScrimsUser> ScrimsUser { get; set; }
         public virtual DbSet<UserRole> UserRole { get; set; }
+    
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        //{
-        //    #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-        //    optionsBuilder.UseSqlServer(@"Server=.\SQLEXPRESS;Database=scrims-test;Trusted_Connection=True;");
-        //}
+//        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+//        {
+//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+//            optionsBuilder.UseSqlServer(@"Server=scrims-test.cnxbhgiegzg3.us-west-1.rds.amazonaws.com,1234;Database=scrims-test;User Id=scrimsadmin;Password=Testpassword#2");
+//        }
         public ScrimsDbContext(DbContextOptions<ScrimsDbContext> options)
                 : base(options)
-        { }
+
+        {
+
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

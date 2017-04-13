@@ -34,13 +34,14 @@ namespace ScrimsServerLess
         {
             services.AddMvc();
 
-            // var connection = @"Server=.\SQLEXPRESS;Database=scrims-test;Trusted_Connection=True;";
-            var connection = @"Server=scrims-test.cq40xykeuiim.us-west-2.rds.amazonaws.com,1234;Database=scrims-test;User Id=scrimsadmin;Password=Testpassword#2";
+             //var connection = @"Server=scrims-test.cnxbhgiegzg3.us-west-1.rds.amazonaws.com,1234;Trusted_Connection=True;";
+            var connection = @"Server=scrims-test.cnxbhgiegzg3.us-west-1.rds.amazonaws.com,1234;Database=scrims-test;User Id=scrimsadmin;Password=Testpassword#2";
+            //var connection = @"Server=scrims-test.database.windows.net;Database=scrims-test;User Id=scrimsadmin;Password=Testpassword#2";
             services.AddDbContext<ScrimsDbContext>(options => options.UseSqlServer(connection));
 
             // Pull in any SDK configuration from Configuration object
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
-
+          
             // Add S3 to the ASP.NET Core dependency injection framework.
             services.AddAWSService<Amazon.S3.IAmazonS3>();
         }
