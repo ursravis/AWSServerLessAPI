@@ -54,6 +54,8 @@ namespace ScrimsServerLess.Controllers
             }
             catch(AmazonS3Exception e)
             {
+
+              
                 this.Response.StatusCode = (int)e.StatusCode;
                 return new JsonResult(e.Message);
             }
@@ -81,32 +83,40 @@ namespace ScrimsServerLess.Controllers
             }
         }
 
-        [HttpPut("{key}")]
-        public async Task Put(string key)
+         
+        [HttpPost]
+        public async Task<bool> Post(DTO.SmartImage smartImage)
         {
             // Copy the request body into a seekable stream required by the AWS SDK for .NET.
-            var seekableStream = new MemoryStream();
-            await this.Request.Body.CopyToAsync(seekableStream);
-            seekableStream.Position = 0;
+            byte[] byteresponse = Convert.FromBase64String(smartImage.ImageSrc);
+            if (byteresponse != null)
+            {
+                this.Logger.LogInformation($"byteresponse is non empty");
+                var seekableStream = new MemoryStream(byteresponse);
 
-            var putRequest = new PutObjectRequest
-            {
-                BucketName = this.BucketName,
-                Key = key,
-                InputStream = seekableStream
-            };
+                var putRequest = new PutObjectRequest
+                {
+                    BucketName = this.BucketName,
+                    Key = smartImage.ImageName,
+                    InputStream = seekableStream
 
-            try
-            {
-                var response = await this.S3Client.PutObjectAsync(putRequest);
-                Logger.LogInformation($"Uploaded object {key} to bucket {this.BucketName}. Request Id: {response.ResponseMetadata.RequestId}");
+                };
+
+                try
+                {
+                    var response = await this.S3Client.PutObjectAsync(putRequest);
+                    Logger.LogInformation($"Uploaded object {smartImage.CIID} to bucket {this.BucketName}. Request Id: {response.ResponseMetadata.RequestId}");
+                    return !String.IsNullOrEmpty(response.ETag);
+                }
+                catch (AmazonS3Exception e)
+                {
+                    this.Logger.LogInformation($"Exception in  POst smartimage {e.Message + e.StackTrace}");
+                    this.Response.StatusCode = (int)e.StatusCode;
+                    var writer = new StreamWriter(this.Response.Body);
+                    writer.Write(e.Message);
+                }
             }
-            catch (AmazonS3Exception e)
-            {
-                this.Response.StatusCode = (int)e.StatusCode;
-                var writer = new StreamWriter(this.Response.Body);
-                writer.Write(e.Message);
-            }
+            return false;
         }
 
         [HttpDelete("{key}")]

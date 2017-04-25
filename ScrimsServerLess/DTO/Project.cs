@@ -35,7 +35,7 @@ namespace ScrimsServerLess.DTO
         public string WprBillingCode { get; set; }
         public string StrartDate { get; set; }
         public bool IsPrimary { get; set; }
-
+        public DateTime? ReleaseDate { get; internal set; }
     }
     public class SmartAlbum
     {

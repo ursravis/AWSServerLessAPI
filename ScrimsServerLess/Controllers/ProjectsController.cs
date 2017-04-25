@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Data.Common;
 using System.Net.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace ScrimsServerLess.Controllers
 {
@@ -18,7 +19,7 @@ namespace ScrimsServerLess.Controllers
         private ScrimsDbContext scrimsDbContext;
         private ILogger logger;
 
-        public ProjectsController(ScrimsDbContext scrimsDbContext, ILogger<S3ProxyController>  logger)
+        public ProjectsController(ScrimsDbContext scrimsDbContext, ILogger<ProjectsController>  logger)
         {
             this.scrimsDbContext = scrimsDbContext;
             this.logger = logger;
@@ -102,47 +103,50 @@ namespace ScrimsServerLess.Controllers
         public void Delete(int id)
         {
         }
-        [HttpGet("/api/projects/{id}")]
-        public async Task Get(int projectID)
+        [HttpGet("/api/projects/{projectID}")]
+        public DTO.Project Get(int projectID)
         {
-            this.logger.LogInformation("Started executing Get");
-            string page = "http://en.wikipedia.org/";
+            //this.logger.LogInformation("Started executing Get");
+            //string page = "http://en.wikipedia.org/";
 
-            // ... Use HttpClient.
-            using (HttpClient client = new HttpClient())
-            {
-                this.logger.LogInformation("Started executing client.GetAsync");
-                using (HttpResponseMessage response = await client.GetAsync(page))
-                using (HttpContent content = response.Content)
-                {
-                    this.logger.LogInformation("Started executing client.ReadAsStringAsync");
-                    // ... Read the string.
-                    string result = await content.ReadAsStringAsync();
-
-                    // ... Display the result.
-                    if (result != null &&
-                        result.Length >= 50)
-                    {
-                        Console.WriteLine(result.Substring(0, 50) + "...");
-                    }
-                }
-                this.logger.LogInformation("Started executing Get1");
-            }
-            // var project = scrimsDbContext.Project.FirstOrDefault(it => it.ProjectId == projectID);
-            //if (project != null)
+            //// ... Use HttpClient.
+            //using (HttpClient client = new HttpClient())
             //{
-            //ScrimsServerLess.DTO.Project projObj = new ScrimsServerLess.DTO.Project();
-            //    projObj.ProjectName = project.WorkingTitle ?? project.ReleaseTitle;
-            //    projObj.TotalCICount = project.ClearanceItem != null ? project.ClearanceItem.Count : 0;
-            //    projObj.ReviewQueueCount = project.ClearanceItem != null ? project.ClearanceItem.Where(it => it.ReviewQueue.HasValue && it.ReviewQueue.Value).Count() : 0;
+            //    this.logger.LogInformation("Started executing client.GetAsync");
+            //    using (HttpResponseMessage response = await client.GetAsync(page))
+            //    using (HttpContent content = response.Content)
+            //    {
+            //        this.logger.LogInformation("Started executing client.ReadAsStringAsync");
+            //        // ... Read the string.
+            //        string result = await content.ReadAsStringAsync();
 
-            //    projObj.ProjectUniqueID = project.ProjectUniqueId;
-
-            //    return projObj;
+            //        // ... Display the result.
+            //        if (result != null &&
+            //            result.Length >= 50)
+            //        {
+            //            Console.WriteLine(result.Substring(0, 50) + "...");
+            //        }
+            //    }
+            //    this.logger.LogInformation("Started executing Get1");
             //}
+            var project = scrimsDbContext.Project.FirstOrDefault(it => it.ProjectId == projectID);
+            if (project != null)
+            {
+                ScrimsServerLess.DTO.Project projObj = new ScrimsServerLess.DTO.Project();
+                projObj.ProjectName = project.WorkingTitle ?? project.ReleaseTitle;
+               
+                projObj.ProjectId = project.ProjectId;
+                projObj.ProjectUniqueID = project.ProjectUniqueId;
+                projObj.WorkingTitle = project.WorkingTitle;
+                projObj.ReleaseTitle = project.ReleaseTitle;
+                projObj.WprBillingCode = "Code";
+                projObj.StrartDate = project.StartDate.Value.ToString();
+                projObj.ReleaseDate = project.ReleaseDate;
 
+                return projObj;
+            }
 
-            //return new DTO.Project() { ProjectName = "test" };
+            return null;
 
         }
 
@@ -153,7 +157,7 @@ namespace ScrimsServerLess.Controllers
             List<ScrimsServerLess.DTO.Project> projectList = new List<ScrimsServerLess.DTO.Project>();
           
                 var statuses = scrimsDbContext.Cistatus.ToList();
-                foreach (var project in scrimsDbContext.Project)
+                foreach (var project in scrimsDbContext.Project.Include(p=>p.ClearanceItem))
                 {
                 ScrimsServerLess.DTO.Project projObj = new ScrimsServerLess.DTO.Project();
                     projObj.ProjectName = project.WorkingTitle ?? project.ReleaseTitle;
@@ -167,10 +171,34 @@ namespace ScrimsServerLess.Controllers
                         projObj.StatusValues.Add(project.ClearanceItem != null ? project.ClearanceItem.Where(it => it.Cistatus.Value == status.CistatusId).Count() : 0);
                     }
                     projObj.ProjectUniqueID = project.ProjectUniqueId;
+                projObj.ProjectId = project.ProjectId;
                     projectList.Add(projObj);
                 }
             
             return projectList;
         }
+        [HttpGet("/api/projects/{projectId}/cis")]
+        public IEnumerable<DTO.ClearanceItem> GetCIsOfProject(int projectId)
+        {
+            List<DTO.ClearanceItem> items = new List<DTO.ClearanceItem>();
+            var cis = scrimsDbContext.ClearanceItem.Where(it => it.ProjectId == projectId);
+            foreach(ClearanceItem item in cis)
+            {
+                items.Add(new DTO.ClearanceItem() {
+                    ClearanceItemID = item.Ciid,
+                    ClearanceItemName = item.Ciname,
+                    ClearanceItemUniqueId = "Unique",
+                    CreatedBy = "Test",
+                    CreatedByProduction = item.IsCreatedByProd.Value,
+                    CreatedDate=item.CreatedDate.Value.ToString(),
+                    Description=item.QuickDesc,
+                    UseDescription=item.DescOfUse,
+                    Status="Created",
+                    Tags=item.Tags,
+                    ReleaseAdded=true
+                });
+            }
+            return items;
+         }
     }
 }
