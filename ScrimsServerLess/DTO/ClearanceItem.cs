@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Amazon.SecurityToken.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,5 +21,6 @@ namespace ScrimsServerLess.DTO
    public bool CreatedByProduction;
    public string CreatedDate;
    public string ImageUrl;
+        public Credentials Credentials;
     }
 }

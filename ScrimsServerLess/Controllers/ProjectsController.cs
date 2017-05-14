@@ -106,6 +106,7 @@ namespace ScrimsServerLess.Controllers
         [HttpGet("/api/projects/{projectID}")]
         public DTO.Project Get(int projectID)
         {
+           
             //this.logger.LogInformation("Started executing Get");
             //string page = "http://en.wikipedia.org/";
 

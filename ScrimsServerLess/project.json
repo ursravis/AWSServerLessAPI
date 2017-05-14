@@ -10,6 +10,7 @@
     "Amazon.Lambda.Core": "1.0.0",
     "Amazon.Lambda.Logging.AspNetCore": "1.0.0",
     "Amazon.Lambda.Serialization.Json": "1.0.1",
+   "AWSSDK.SecurityToken": "3.3.1.9",
     "Amazon.Lambda.Tools": {
       "type": "build",
       "version": "1.4.0"

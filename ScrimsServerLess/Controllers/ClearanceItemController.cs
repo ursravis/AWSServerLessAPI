@@ -11,6 +11,10 @@ using System.Data.Common;
 using System.Net.Http;
 using Microsoft.EntityFrameworkCore;
 using Amazon.S3;
+using Amazon.SecurityToken;
+using Amazon.SecurityToken.Model;
+using Amazon.Runtime;
+using Amazon.S3.Model;
 
 namespace ScrimsServerLess.Controllers
 {
@@ -78,16 +82,46 @@ namespace ScrimsServerLess.Controllers
                 }
             }
         }
+        private async  Task<Credentials> GetTemporaryCredentials(
+                         string accessKeyId, string secretAccessKeyId)
+        {
+           
+            AmazonSecurityTokenServiceClient stsClient =
+                new AmazonSecurityTokenServiceClient(accessKeyId,
+                                                     secretAccessKeyId);
 
+            GetSessionTokenRequest getSessionTokenRequest =
+                                             new GetSessionTokenRequest();
+            getSessionTokenRequest.DurationSeconds = 7200; // seconds
+
+            GetSessionTokenResponse sessionTokenResponse =
+                         await stsClient.GetSessionTokenAsync(getSessionTokenRequest);
+            Credentials credentials = sessionTokenResponse.Credentials;
+            
+            //SessionAWSCredentials sessionCredentials =
+            //    new SessionAWSCredentials(credentials.AccessKeyId,
+            //                              credentials.SecretAccessKey,
+            //                              credentials.SessionToken);
+          
+
+            return credentials;
+        }
         // DELETE api/values/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
         }
-        [HttpGet("/api/ClearanceItems/{ciId}")]
-        public DTO.ClearanceItem Get(int ciId)
+        [HttpGet("/api/AWSCredentials")]
+        public async Task<Credentials> GetCredentials()
         {
-            
+            var credentials = await this.GetTemporaryCredentials("AccessKeyHere", "SecretHere");
+            return credentials;
+
+        }
+        [HttpGet("/api/ClearanceItems/{ciId}")]
+        public async Task<DTO.ClearanceItem> Get(int ciId)
+        {
+           
             var cidb= scrimsDbContext.ClearanceItem.FirstOrDefault(it => it.Ciid == ciId);
             return new DTO.ClearanceItem()
             {
